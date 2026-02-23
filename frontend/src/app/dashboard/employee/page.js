@@ -67,6 +67,22 @@ export default function EmployeeDashboard() {
     }
   };
 
+  const handleCancelLeave = async (leaveId) => {
+    if (!confirm('Are you sure you want to cancel this leave? Your balance will be restored.')) {
+      return;
+    }
+    
+    try {
+      setError('');
+      setSuccess('');
+      await api.post(`/api/leaves/${leaveId}/cancel`);
+      setSuccess('Leave cancelled successfully! Your balance has been restored.');
+      await fetchLeaves(page);
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to cancel leave');
+    }
+  };
+
   const handleSubmit = async () => {
     if (!leaveType || !startDate || !endDate || !reason.trim()) {
       setError('Please fill all required fields including reason');
@@ -238,11 +254,24 @@ export default function EmployeeDashboard() {
                     <Stack spacing={1}>
                       <Typography><strong>Leave Type:</strong> {leave.leave_type}</Typography>
                       <Typography><strong>Duration:</strong> {leave.start_date} to {leave.end_date} ({leave.total_days} days)</Typography>
-                      <Typography><strong>Status:</strong> <span style={{ color: leave.status === 'APPROVED' ? '#00e676' : leave.status === 'REJECTED' ? '#ff1744' : '#ffa726' }}>{leave.status}</span></Typography>
+                      <Typography><strong>Status:</strong> <span style={{ color: leave.status === 'APPROVED' ? '#00e676' : leave.status === 'REJECTED' ? '#ff1744' : leave.status === 'CANCELLED' ? '#ffa726' : '#ffa726' }}>{leave.status}</span></Typography>
                       <Typography><strong>Applied On:</strong> {leave.applied_at ? new Date(leave.applied_at).toLocaleDateString() : 'N/A'}</Typography>
                       {leave.reason && <Typography><strong>Reason:</strong> {leave.reason}</Typography>}
                       {leave.rejection_reason && <Typography color="error"><strong>Rejection Reason:</strong> {leave.rejection_reason}</Typography>}
                       {leave.processed_at && <Typography><strong>Processed On:</strong> {new Date(leave.processed_at).toLocaleDateString()}</Typography>}
+                      
+                      {leave.status === 'APPROVED' && new Date(leave.start_date) > new Date() && (
+                        <Box sx={{ mt: 1 }}>
+                          <Button 
+                            size="small" 
+                            variant="outlined"
+                            color="warning" 
+                            onClick={() => handleCancelLeave(leave.leave_id)}
+                          >
+                            Cancel Leave
+                          </Button>
+                        </Box>
+                      )}
                     </Stack>
                   </Paper>
                 ))}

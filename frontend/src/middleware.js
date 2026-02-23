@@ -20,11 +20,11 @@ export function middleware(request) {
 
   try {
     const decoded = jwtDecode(token);
-    
+
     if (!decoded || !decoded.roles || !Array.isArray(decoded.roles)) {
       throw new Error('Invalid token structure');
     }
-    
+
     const roles = decoded.roles;
 
     // ROLE BASED ACCESS
@@ -47,7 +47,6 @@ export function middleware(request) {
   }
 
 }
-
 
 export const config = {
   matcher: ["/dashboard/:path*", "/auth/:path*"],

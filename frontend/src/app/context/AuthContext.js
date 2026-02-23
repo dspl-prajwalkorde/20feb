@@ -78,8 +78,15 @@ export function AuthProvider({ children }) {
 
       return user;
     } catch (err) {
-      console.error("LOGIN FAILED:", err.message);
-      throw err;
+      console.error("LOGIN FAILED:", err);
+      // Extract error message from axios error response
+      let errorMessage = 'Login failed. Please try again.';
+      if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      throw new Error(errorMessage);
     } finally {
       setLoading(false);
     }

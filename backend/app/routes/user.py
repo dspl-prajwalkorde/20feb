@@ -26,5 +26,6 @@ def update_profile():
     
     return jsonify({
         "message": "Profile updated successfully",
-        "full_name": user.full_name
+        "full_name": user.full_name,
+        "location": user.location
     }), 200

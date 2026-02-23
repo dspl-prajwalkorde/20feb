@@ -1,0 +1,58 @@
+services:
+  db:
+    image: postgres:14-alpine
+    container_name: nexus-pulse-db
+    environment:
+      POSTGRES_DB: leave_mgmt
+      POSTGRES_USER: leave_user
+      POSTGRES_PASSWORD: leave_pass
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U leave_user -d leave_mgmt"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: nexus-pulse-backend
+    environment:
+      DATABASE_URL: postgresql://leave_user:leave_pass@db:5432/leave_mgmt
+      JWT_SECRET_KEY: your-secret-key-change-in-production
+      JWT_ACCESS_TOKEN_EXPIRES: 3600
+      FRONTEND_URL: http://localhost:3000
+      FLASK_APP: manage.py
+    ports:
+      - "5000:5000"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+    command: >
+      sh -c "flask db upgrade && 
+             flask run --host=0.0.0.0"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: nexus-pulse-frontend
+    environment:
+      NEXT_PUBLIC_BACKEND_URL: http://backend:5000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+
+volumes:
+  postgres_data:

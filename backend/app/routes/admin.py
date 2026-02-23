@@ -25,6 +25,7 @@ def get_all_users():
                 "id": str(user.id),
                 "email": user.email,
                 "full_name": user.full_name,
+                "location": user.location,
                 "is_active": user.is_active,
                 "roles": [role.name for role in user.roles]
             }
@@ -119,4 +120,27 @@ def update_user_status(user_id):
         "message": "User status updated successfully",
         "user_id": str(user.id),
         "is_active": user.is_active
+    }), 200
+
+
+@admin_bp.route("/users/<uuid:user_id>/location", methods=["PATCH"])
+@jwt_required()
+@role_required("ADMIN")
+def update_user_location(user_id):
+    data = request.get_json()
+    
+    if "location" not in data:
+        return jsonify({"message": "location is required"}), 400
+    
+    if data["location"] not in ['Pune', 'Ahmedabad']:
+        return jsonify({"message": "Invalid location. Must be Pune or Ahmedabad"}), 400
+    
+    user = User.query.get_or_404(user_id)
+    user.location = data["location"]
+    db.session.commit()
+    
+    return jsonify({
+        "message": "User location updated successfully",
+        "user_id": str(user.id),
+        "location": user.location
     }), 200

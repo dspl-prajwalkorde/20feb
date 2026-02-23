@@ -291,6 +291,7 @@ def pending_leaves():
                     "leave_id": str(l.id),
                     "employee_name": l.user.full_name,
                     "employee_id": str(l.user.id),
+                    "employee_location": l.user.location,
                     "leave_type": l.leave_type.name,
                     "leave_type_id": str(l.leave_type.id),
                     "start_date": l.start_date.isoformat(),
@@ -430,4 +431,32 @@ def reject_leave(leave_id):
         "leave_id": str(leave.id),
         "status": leave.status
     }), 200
+
+
+@leave_bp.route("/<uuid:leave_id>/cancel", methods=["POST"])
+@jwt_required()
+def cancel_leave(leave_id):
+    """Employee cancels their own approved leave"""
+    try:
+        identity = get_jwt_identity()
+        user_id = identity if isinstance(identity, UUID) else UUID(identity)
+        
+        print(f"DEBUG: Attempting to cancel leave {leave_id} for user {user_id}")
+        
+        leave = LeaveService.cancel_leave(leave_id, user_id)
+        
+        return jsonify({
+            "message": "Leave cancelled successfully. Your leave balance has been restored.",
+            "leave_id": str(leave.id),
+            "status": leave.status
+        }), 200
+    
+    except ValueError as e:
+        print(f"DEBUG: ValueError in cancel_leave: {str(e)}")
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        print(f"DEBUG: Exception in cancel_leave: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": f"Failed to cancel leave: {str(e)}"}), 500
 

@@ -6,6 +6,7 @@ from uuid import UUID
 from sqlalchemy import or_
 from sqlalchemy.exc import SQLAlchemyError
 from typing import List
+from datetime import date, timedelta
 
 class LeaveService:
 
@@ -68,7 +69,8 @@ class LeaveService:
             LeaveLedgerService.deduct_leave(
                 user_id=leave.user_id,
                 leave_type_id=leave.leave_type_id,
-                days=leave.total_days
+                days=leave.total_days,
+                leave_start_date=leave.start_date
             )
 
             leave.status = "APPROVED"
@@ -93,6 +95,42 @@ class LeaveService:
         leave.processed_at = db.func.now()
         db.session.commit()
         return leave
+
+    @staticmethod
+    def cancel_leave(leave_id: UUID, user_id: UUID):
+        """Cancel approved leave with conditions"""
+        try:
+            leave = LeaveRequest.query.filter_by(
+                id=leave_id,
+                user_id=user_id
+            ).with_for_update().first_or_404()
+
+            # Only approved leaves can be cancelled
+            if leave.status != "APPROVED":
+                raise ValueError("Only approved leaves can be cancelled")
+
+            # Check if leave has already started
+            today = date.today()
+            if leave.start_date <= today:
+                raise ValueError("Cannot cancel leave that has already started or is starting today")
+
+            # Restore leave balance
+            LeaveLedgerService.restore_leave(
+                user_id=leave.user_id,
+                leave_type_id=leave.leave_type_id,
+                days=leave.total_days,
+                leave_start_date=leave.start_date
+            )
+
+            leave.status = "CANCELLED"
+            leave.processed_at = db.func.now()
+
+            db.session.commit()
+            return leave
+
+        except Exception as e:
+            db.session.rollback()
+            raise ValueError(str(e))
 
     @staticmethod
     def get_user_leaves(user_id: UUID) -> List[LeaveRequest]:

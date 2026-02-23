@@ -24,6 +24,9 @@ def login():
     if not user or not user.check_password(password):
         return jsonify({"message": "Invalid credentials"}), 401
 
+    if not user.is_active:
+        return jsonify({"message": "Access expired. Contact admin for details."}), 403
+
     access_token = create_access_token(
         identity=str(user.id),
         additional_claims={

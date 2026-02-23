@@ -206,6 +206,7 @@ export default function HRDashboard() {
               {leaves.map((leave) => (
                 <Paper key={leave.leave_id} sx={{ p: 2, mb: 2 }}>
                   <Typography><strong>Employee Name:</strong> {leave.employee_name}</Typography>
+                  <Typography><strong>Location:</strong> {leave.employee_location || 'N/A'}</Typography>
                   <Typography><strong>Leave Type:</strong> {leave.leave_type}</Typography>
                   <Typography><strong>From:</strong> {leave.start_date}</Typography>
                   <Typography><strong>To:</strong> {leave.end_date}</Typography>

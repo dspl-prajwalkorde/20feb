@@ -37,11 +37,15 @@ def create_app(config_name=None):
     from app.routes.hr import hr_bp
     from app.routes.leave import leave_bp
     from app.routes.admin import admin_bp
+    from app.routes.analytics import analytics_bp
+    from app.routes.holiday import holiday_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(user_bp)
     app.register_blueprint(hr_bp)
     app.register_blueprint(leave_bp)
     app.register_blueprint(admin_bp)
+    app.register_blueprint(analytics_bp)
+    app.register_blueprint(holiday_bp)
 
     return app

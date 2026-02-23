@@ -87,6 +87,18 @@ export default function EmployeesPage() {
     }
   };
 
+  const handleLocationChange = async (userId, newLocation) => {
+    try {
+      await api.patch(`/api/admin/users/${userId}/location`, {
+        location: newLocation
+      });
+      setSuccess(`Location updated to ${newLocation}`);
+      fetchEmployees();
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to update location');
+    }
+  };
+
   const getRoleColor = (role) => {
     const colors = { ADMIN: 'error', HR: 'warning', EMPLOYEE: 'primary' };
     return colors[role] || 'default';
@@ -109,6 +121,7 @@ export default function EmployeesPage() {
             <TableRow>
               <TableCell sx={{ fontWeight: 700 }}>Name</TableCell>
               <TableCell sx={{ fontWeight: 700 }}>Email</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>Location</TableCell>
               <TableCell sx={{ fontWeight: 700 }}>Roles</TableCell>
               <TableCell sx={{ fontWeight: 700 }}>Status</TableCell>
             </TableRow>
@@ -118,6 +131,17 @@ export default function EmployeesPage() {
               <TableRow key={emp.id}>
                 <TableCell>{emp.full_name}</TableCell>
                 <TableCell>{emp.email}</TableCell>
+                <TableCell>
+                  <Select
+                    value={emp.location || 'Pune'}
+                    onChange={(e) => handleLocationChange(emp.id, e.target.value)}
+                    size="small"
+                    sx={{ minWidth: 120 }}
+                  >
+                    <MenuItem value="Pune">Pune</MenuItem>
+                    <MenuItem value="Ahmedabad">Ahmedabad</MenuItem>
+                  </Select>
+                </TableCell>
                 <TableCell>
                   <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                     {emp.roles.map((role) => (

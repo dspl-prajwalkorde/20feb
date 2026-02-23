@@ -10,7 +10,7 @@ export default function ProfilePage() {
   const [fullName, setFullName] = useState(user?.full_name || '');
   const [loading, setLoading] = useState(false);
 
-  const handleUpdateName = async () => {
+  const handleUpdateProfile = async () => {
     if (!fullName.trim()) {
       alert('Name cannot be empty');
       return;
@@ -22,9 +22,9 @@ export default function ProfilePage() {
       const updatedUser = { ...user, full_name: fullName };
       setUser(updatedUser);
       sessionStorage.setItem('user', JSON.stringify(updatedUser));
-      alert('Name updated successfully');
+      alert('Profile updated successfully');
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to update name');
+      alert(err.response?.data?.message || 'Failed to update profile');
     } finally {
       setLoading(false);
     }
@@ -64,13 +64,23 @@ export default function ProfilePage() {
             />
           </Box>
 
+          <Box>
+            <TextField
+              label="Location"
+              fullWidth
+              value={user?.location || 'Pune'}
+              disabled
+              helperText="Contact admin to change location"
+            />
+          </Box>
+
           <Stack direction="row" spacing={2}>
             <Button
               variant="contained"
-              onClick={handleUpdateName}
+              onClick={handleUpdateProfile}
               disabled={loading || fullName === user?.full_name}
             >
-              Update Name
+              Update Profile
             </Button>
             <Button
               variant="outlined"
